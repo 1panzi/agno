@@ -60,7 +60,6 @@ class MarkdownReader(Reader):
                     ChunkingStrategyType.FIXED_SIZE_CHUNKER, **kwargs
                 )
 
-
         super().__init__(chunking_strategy=chunking_strategy, name=name, description=description, **kwargs)
 
     def read(self, file: Union[Path, IO[Any]], name: Optional[str] = None) -> List[Document]:
