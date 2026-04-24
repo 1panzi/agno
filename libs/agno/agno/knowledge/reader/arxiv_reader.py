@@ -37,6 +37,10 @@ class ArxivReader(Reader):
         sort_by: arxiv.SortCriterion = arxiv.SortCriterion.Relevance,
         **kwargs,
     ) -> None:
+        if chunking_strategy is None:
+            chunking_strategy = ChunkingStrategyFactory.create_strategy(
+                ChunkingStrategyType.FIXED_SIZE_CHUNKER, **kwargs
+            )
         super().__init__(chunking_strategy=chunking_strategy, **kwargs)
 
         # ArxivReader-specific attributes
