@@ -60,6 +60,7 @@ class MarkdownReader(Reader):
                     ChunkingStrategyType.FIXED_SIZE_CHUNKER, **kwargs
                 )
 
+
         super().__init__(chunking_strategy=chunking_strategy, name=name, description=description, **kwargs)
 
     def read(self, file: Union[Path, IO[Any]], name: Optional[str] = None) -> List[Document]:
@@ -84,7 +85,7 @@ class MarkdownReader(Reader):
                 return chunked_documents
             return documents
         except Exception as e:
-            log_error(f"Error reading: {file}: {e}")
+            log_error(f"Error reading: {file}: {str(e)}")
             return []
 
     async def async_read(self, file: Union[Path, IO[Any]], name: Optional[str] = None) -> List[Document]:
@@ -101,8 +102,8 @@ class MarkdownReader(Reader):
 
                     async with aiofiles.open(file, "r", encoding=self.encoding or "utf-8") as f:
                         file_contents = await f.read()
-                except ImportError:
-                    log_warning("aiofiles not installed, using synchronous file I/O")
+                except ImportError as e:
+                    log_warning(f"aiofiles not installed, using synchronous file I/O: {str(e)}")
                     file_contents = file.read_text(encoding=self.encoding or "utf-8")
             else:
                 log_debug(f"Reading uploaded file asynchronously: {getattr(file, 'name', 'BytesIO')}")
@@ -120,7 +121,7 @@ class MarkdownReader(Reader):
                 return await self._async_chunk_document(document)
             return [document]
         except Exception as e:
-            log_error(f"Error reading asynchronously: {file}: {e}")
+            log_error(f"Error reading asynchronously: {file}: {str(e)}")
             return []
 
     async def _async_chunk_document(self, document: Document) -> List[Document]:
