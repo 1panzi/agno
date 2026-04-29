@@ -652,6 +652,8 @@ class ComponentType(str, Enum):
     AGENT = "agent"
     TEAM = "team"
     WORKFLOW = "workflow"
+    MODEL = "model"
+    KNOWLEDGE = "knowledge"
 
 
 class ComponentCreate(BaseModel):

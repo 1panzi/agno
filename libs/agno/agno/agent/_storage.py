@@ -517,9 +517,8 @@ def to_dict(agent: Agent) -> Dict[str, Any]:
         config["max_tool_calls_from_history"] = agent.max_tool_calls_from_history
 
     # --- Knowledge settings ---
-    # TODO: implement knowledge serialization
-    # if agent.knowledge is not None:
-    # config["knowledge"] = agent.knowledge.to_dict()
+    if agent.knowledge is not None and hasattr(agent.knowledge, "to_dict"):
+        config["knowledge"] = agent.knowledge.to_dict()
     if agent.knowledge_filters is not None:
         config["knowledge_filters"] = agent.knowledge_filters
     if agent.enable_agentic_knowledge_filters:
@@ -832,10 +831,10 @@ def from_dict(cls: Type[Agent], data: Dict[str, Any], registry: Optional[Registr
     #     config["culture_manager"] = CultureManager.from_dict(config["culture_manager"])
 
     # --- Handle Knowledge reconstruction ---
-    # TODO: implement knowledge deserialization
-    # if "knowledge" in config and isinstance(config["knowledge"], dict):
-    #     from agno.knowledge import Knowledge
-    #     config["knowledge"] = Knowledge.from_dict(config["knowledge"])
+    if "knowledge" in config and isinstance(config["knowledge"], dict):
+        from agno.knowledge import Knowledge
+
+        config["knowledge"] = Knowledge.from_dict(config["knowledge"], registry=registry)
 
     # --- Handle CompressionManager reconstruction ---
     # TODO: implement compression manager deserialization
@@ -894,7 +893,7 @@ def from_dict(cls: Type[Agent], data: Dict[str, Any], registry: Optional[Registr
         num_history_messages=config.get("num_history_messages"),
         max_tool_calls_from_history=config.get("max_tool_calls_from_history"),
         # --- Knowledge settings ---
-        # knowledge=config.get("knowledge"),  # TODO
+        knowledge=config.get("knowledge"),
         knowledge_filters=config.get("knowledge_filters"),
         enable_agentic_knowledge_filters=config.get("enable_agentic_knowledge_filters", False),
         add_knowledge_to_context=config.get("add_knowledge_to_context", False),

@@ -17,10 +17,14 @@ from re import IGNORECASE
 from re import compile as re_compile
 from re import error as re_error
 from re import escape as re_escape
-from typing import Any, List, Optional
+from typing import TYPE_CHECKING, Any, Dict, List, Optional, Tuple
 
 from agno.knowledge.document import Document
 from agno.utils.log import log_debug, log_warning
+
+if TYPE_CHECKING:
+    from agno.db.base import BaseDb
+    from agno.registry.registry import Registry
 
 
 @dataclass
@@ -66,6 +70,54 @@ class FileSystemKnowledge:
             raise ValueError(f"Directory does not exist: {self.base_dir}")
         if not self.base_path.is_dir():
             raise ValueError(f"Path is not a directory: {self.base_dir}")
+
+    def to_dict(self) -> Dict[str, Any]:
+        from agno.knowledge._storage import to_dict as _to_dict
+
+        return _to_dict(self)
+
+    @classmethod
+    def from_dict(cls, data: Dict[str, Any], registry: Optional["Registry"] = None) -> "FileSystemKnowledge":
+        from agno.knowledge._storage import from_dict as _from_dict
+
+        return _from_dict(cls, data, registry=registry)
+
+    def save(
+        self,
+        db: "BaseDb",
+        *,
+        stage: str = "published",
+        label: Optional[str] = None,
+        notes: Optional[str] = None,
+    ) -> Tuple[str, Optional[int]]:
+        from agno.knowledge._storage import save as _save
+
+        return _save(self, db, stage=stage, label=label, notes=notes)
+
+    @classmethod
+    def load(
+        cls,
+        component_id: str,
+        db: "BaseDb",
+        *,
+        registry: Optional["Registry"] = None,
+        label: Optional[str] = None,
+        version: Optional[int] = None,
+    ) -> Optional["FileSystemKnowledge"]:
+        from agno.knowledge._storage import load as _load
+
+        return _load(cls, component_id, db, registry=registry, label=label, version=version)
+
+    def delete(
+        self,
+        component_id: str,
+        db: "BaseDb",
+        *,
+        hard_delete: bool = False,
+    ) -> bool:
+        from agno.knowledge._storage import delete as _delete
+
+        return _delete(component_id, db, hard_delete=hard_delete)
 
     def _should_include_file(self, file_path: Path) -> bool:
         """Check if a file should be included based on patterns."""

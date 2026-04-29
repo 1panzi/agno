@@ -48,6 +48,7 @@ from agno.os.routers.health import get_health_router
 from agno.os.routers.home import get_home_router
 from agno.os.routers.knowledge import get_knowledge_router
 from agno.os.routers.memory import get_memory_router
+from agno.os.routers.models import get_model_router
 from agno.os.routers.metrics import get_metrics_router
 from agno.os.routers.registry import get_registry_router
 from agno.os.routers.schedules import get_schedule_router
@@ -459,6 +460,7 @@ class AgentOS:
         self._add_router(app, get_agent_router(self, settings=self.settings, registry=self.registry))
         self._add_router(app, get_team_router(self, settings=self.settings, registry=self.registry))
         self._add_router(app, get_workflow_router(self, settings=self.settings))
+        self._add_router(app, get_model_router(self, settings=self.settings))
         self._add_router(app, get_websocket_router(self, settings=self.settings))
 
         # Add A2A interface if relevant

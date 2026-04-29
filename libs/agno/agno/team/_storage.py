@@ -518,9 +518,8 @@ def to_dict(team: "Team") -> Dict[str, Any]:
         config["add_dependencies_to_context"] = team.add_dependencies_to_context
 
     # --- Knowledge settings ---
-    # TODO: implement knowledge serialization
-    # if team.knowledge is not None:
-    #     config["knowledge"] = team.knowledge.to_dict()
+    if team.knowledge is not None and hasattr(team.knowledge, "to_dict"):
+        config["knowledge"] = team.knowledge.to_dict()
     if team.knowledge_filters is not None:
         config["knowledge_filters"] = team.knowledge_filters
     if team.enable_agentic_knowledge_filters:
@@ -851,10 +850,10 @@ def from_dict(
     #     config["session_summary_manager"] = SessionSummaryManager.from_dict(config["session_summary_manager"])
 
     # --- Handle Knowledge reconstruction ---
-    # TODO: implement knowledge deserialization
-    # if "knowledge" in config and isinstance(config["knowledge"], dict):
-    #     from agno.knowledge import Knowledge
-    #     config["knowledge"] = Knowledge.from_dict(config["knowledge"])
+    if "knowledge" in config and isinstance(config["knowledge"], dict):
+        from agno.knowledge import Knowledge
+
+        config["knowledge"] = Knowledge.from_dict(config["knowledge"], registry=registry)
 
     # --- Handle CompressionManager reconstruction ---
     # TODO: implement compression manager deserialization
@@ -920,7 +919,7 @@ def from_dict(
             dependencies=config.get("dependencies"),
             add_dependencies_to_context=config.get("add_dependencies_to_context", False),
             # --- Knowledge settings ---
-            # knowledge=config.get("knowledge"),  # TODO
+            knowledge=config.get("knowledge"),
             knowledge_filters=config.get("knowledge_filters"),
             enable_agentic_knowledge_filters=config.get("enable_agentic_knowledge_filters", False),
             add_knowledge_to_context=config.get("add_knowledge_to_context", False),

@@ -78,6 +78,11 @@ class Registry:
             return next((db for db in self.dbs if db.id == db_id), None)
         return None
 
+    def get_vector_db(self, vector_db_id: str) -> Optional[VectorDb]:
+        if self.vector_dbs:
+            return next((vector_db for vector_db in self.vector_dbs if vector_db.id == vector_db_id), None)
+        return None
+
     def get_function(self, name: str) -> Optional[Callable]:
         return next((f for f in self.functions if f.__name__ == name), None)
 

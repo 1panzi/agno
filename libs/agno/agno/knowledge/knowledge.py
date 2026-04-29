@@ -7,7 +7,7 @@ from enum import Enum
 from io import BytesIO
 from os.path import basename
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Set, Tuple, Union, cast, overload
+from typing import TYPE_CHECKING, Any, Dict, List, Optional, Set, Tuple, Union, cast, overload
 
 from httpx import AsyncClient
 
@@ -29,6 +29,9 @@ from agno.utils.log import log_debug, log_error, log_info, log_warning
 from agno.utils.string import generate_id
 
 ContentDict = Dict[str, Union[str, Dict[str, str]]]
+
+if TYPE_CHECKING:
+    from agno.registry.registry import Registry
 
 
 class KnowledgeContentOrigin(Enum):
@@ -63,6 +66,54 @@ class Knowledge(RemoteKnowledge):
             self.vector_db.create()
 
         self.construct_readers()
+
+    def to_dict(self) -> Dict[str, Any]:
+        from agno.knowledge._storage import to_dict as _to_dict
+
+        return _to_dict(self)
+
+    @classmethod
+    def from_dict(cls, data: Dict[str, Any], registry: Optional["Registry"] = None) -> "Knowledge":
+        from agno.knowledge._storage import from_dict as _from_dict
+
+        return _from_dict(cls, data, registry=registry)
+
+    def save(
+        self,
+        db: BaseDb,
+        *,
+        stage: str = "published",
+        label: Optional[str] = None,
+        notes: Optional[str] = None,
+    ) -> Tuple[str, Optional[int]]:
+        from agno.knowledge._storage import save as _save
+
+        return _save(self, db, stage=stage, label=label, notes=notes)
+
+    @classmethod
+    def load(
+        cls,
+        component_id: str,
+        db: BaseDb,
+        *,
+        registry: Optional["Registry"] = None,
+        label: Optional[str] = None,
+        version: Optional[int] = None,
+    ) -> Optional["Knowledge"]:
+        from agno.knowledge._storage import load as _load
+
+        return _load(cls, component_id, db, registry=registry, label=label, version=version)
+
+    def delete(
+        self,
+        component_id: str,
+        db: BaseDb,
+        *,
+        hard_delete: bool = False,
+    ) -> bool:
+        from agno.knowledge._storage import delete as _delete
+
+        return _delete(component_id, db, hard_delete=hard_delete)
 
     # ==========================================
     # PUBLIC API - INSERT METHODS
@@ -3572,3 +3623,16 @@ Make sure to pass the filters as [Dict[str: Any]] to the tool. FOLLOW THIS STRUC
         Please migrate your code to use `ainsert_many()` instead.
         """
         return await self.ainsert_many(*args, **kwargs)
+
+
+def get_knowledge_by_id(
+    component_id: str,
+    db: "BaseDb",
+    *,
+    registry: Optional["Registry"] = None,
+    label: Optional[str] = None,
+    version: Optional[int] = None,
+) -> Optional["Knowledge"]:
+    from agno.knowledge._storage import get_knowledge_by_id as _get
+
+    return _get(component_id, db, registry=registry, label=label, version=version)

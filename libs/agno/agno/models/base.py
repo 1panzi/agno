@@ -25,6 +25,7 @@ from typing import (
 
 if TYPE_CHECKING:
     from agno.compression.manager import CompressionManager
+    from agno.db.base import BaseDb
 from uuid import uuid4
 
 from pydantic import BaseModel
@@ -429,9 +430,52 @@ class Model(ABC):
         raise last_exception  # type: ignore
 
     def to_dict(self) -> Dict[str, Any]:
-        fields = {"name", "id", "provider"}
-        _dict = {field: getattr(self, field) for field in fields if getattr(self, field) is not None}
-        return _dict
+        from agno.models._storage import to_dict as _to_dict
+
+        return _to_dict(self)
+
+    @classmethod
+    def from_dict(cls, data: Dict[str, Any]) -> "Model":
+        from agno.models._storage import from_dict as _from_dict
+
+        return _from_dict(cls, data)
+
+    def save(
+        self,
+        db: "BaseDb",
+        *,
+        model_name: Optional[str] = None,
+        stage: str = "published",
+        label: Optional[str] = None,
+        notes: Optional[str] = None,
+    ) -> Tuple[str, Optional[int]]:
+        from agno.models._storage import save as _save
+
+        return _save(self, db, model_name=model_name, stage=stage, label=label, notes=notes)
+
+    @classmethod
+    def load(
+        cls,
+        component_id: str,
+        db: "BaseDb",
+        *,
+        label: Optional[str] = None,
+        version: Optional[int] = None,
+    ) -> Optional["Model"]:
+        from agno.models._storage import load as _load
+
+        return _load(cls, component_id, db, label=label, version=version)
+
+    def delete(
+        self,
+        component_id: str,
+        db: "BaseDb",
+        *,
+        hard_delete: bool = False,
+    ) -> bool:
+        from agno.models._storage import delete as _delete
+
+        return _delete(component_id, db, hard_delete=hard_delete)
 
     def _remove_temporary_messages(self, messages: List[Message]) -> None:
         """Remove temporary messages from the given list.
@@ -3067,3 +3111,16 @@ class Model(ABC):
                     setattr(new_model, k, v)
 
         return new_model
+
+
+def get_model_by_id(
+    component_id: str,
+    db: "BaseDb",
+    *,
+    label: Optional[str] = None,
+    version: Optional[int] = None,
+) -> Optional["Model"]:
+    """Load and reconstruct a Model instance from the database by component_id."""
+    from agno.models._storage import get_model_by_id as _get_model_by_id
+
+    return _get_model_by_id(component_id, db, label=label, version=version)
